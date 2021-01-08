@@ -1,54 +1,63 @@
-import { Subject } from 'rxjs';
+import { Subject } from "rxjs";
 
-export function sendData (stream$) {
-  const mathRandom = Math.floor(Math.random() * (1500 - 250)) + 250;
+const MIN_DELAY = 200;
+const MAX_DELAY = 1500;
+
+const randomizeDelay = () =>
+  Math.floor(Math.random() * (MAX_DELAY - MIN_DELAY)) + MIN_DELAY;
+
+export function sendData(stream$) {
+  const mathRandom = randomizeDelay();
   setTimeout(() => {
-    stream$.next(mathRandom)
-    sendData(stream$)
+    stream$.next(mathRandom);
+    sendData(stream$);
   }, mathRandom);
 }
 
-
-const obj = {
+export const Store = {
   a: {
-    data: Math.floor(Math.random() * (1500 - 250)) + 250,
-    upd: new Date()
+    data: null,
+    upd: new Date(),
   },
   b: {
-    data: Math.floor(Math.random() * (1500 - 250)) + 250,
-    upd: new Date()
+    data: null,
+    upd: new Date(),
   },
   c: {
-    data: Math.floor(Math.random() * (1500 - 250)) + 250,
-    upd: new Date()
+    data: null,
+    upd: new Date(),
   },
   d: {
-    data: Math.floor(Math.random() * (1500 - 250)) + 250,
-    upd: new Date()
-  }
-}
+    data: null,
+    upd: new Date(),
+  },
+};
 
-export const store$ = new Subject()
+export const store$ = new Subject();
 
-const changeValue = (v, streamName) => {
-  obj[streamName] = {
+export const changeValue = (v, streamName, Store, stream$ = store$) => {
+  Store[streamName] = {
     data: v,
-    upd: new Date()
+    upd: new Date(),
+  };
+  if (
+    Object.values(Store).filter((el) => el.data !== null).length ===
+    Object.entries(Store).length
+  ) {
+    stream$.next({ ...Store });
   }
-  store$.next({...obj})
-}
+};
 
 const streamA$ = new Subject();
 const streamB$ = new Subject();
 const streamC$ = new Subject();
 const streamD$ = new Subject();
-streamA$.subscribe(v => changeValue(v, "a"))
-streamB$.subscribe(v => changeValue(v, "b"))
-streamC$.subscribe(v => changeValue(v, "c"))
-streamD$.subscribe(v => changeValue(v, "d"))
+streamA$.subscribe((v) => changeValue(v, "a", Store));
+streamB$.subscribe((v) => changeValue(v, "b", Store));
+streamC$.subscribe((v) => changeValue(v, "c", Store));
+streamD$.subscribe((v) => changeValue(v, "d", Store));
 
-
-sendData(streamA$)
-sendData(streamB$)
-sendData(streamC$)
-sendData(streamD$)
+sendData(streamA$);
+sendData(streamB$);
+sendData(streamC$);
+sendData(streamD$);
